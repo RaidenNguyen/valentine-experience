@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>💕 Happy Valentine's Day 💕</title>
+    <meta
+      name="description"
+      content="A legendary cinematic Valentine experience — with love, from the heart."
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Poppins:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- ═══════════ LOADING SCREEN ═══════════ -->
+    <div id="loading-screen">
+      <div class="loading-heart">💕</div>
+      <p class="loading-text">Loading my Love 💕</p>
+      <div class="loading-bar"><div class="loading-fill"></div></div>
+    </div>
+
+    <!-- ═══════════ CLICK TO START OVERLAY ═══════════ -->
+    <div id="start-overlay" style="display: none">
+      <div class="start-content">
+        <div class="start-heart-icon">💝</div>
+        <h2 class="start-title">Đây là 1 ngày Valentine đặc biệt 🔥</h2>
+        <p class="start-subtitle">Nhấn vào nút dưới nhé !😁</p>
+        <button id="start-btn" class="start-button">
+          <span>Mở cửa trái tim ❤️</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══════════ SOUND TOGGLE ═══════════ -->
+    <button id="sound-toggle" class="sound-toggle" aria-label="Toggle sound">
+      <svg
+        id="sound-on-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path d="M11 5L6 9H2v6h4l5 4V5z" />
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+      </svg>
+      <svg
+        id="sound-off-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        style="display: none"
+      >
+        <path d="M11 5L6 9H2v6h4l5 4V5z" />
+        <line x1="23" y1="9" x2="17" y2="15" />
+        <line x1="17" y1="9" x2="23" y2="15" />
+      </svg>
+    </button>
+
+    <!-- ═══════════ SCENE 1 — PARTICLE HEART + NEON TEXT ═══════════ -->
+    <section id="scene1" class="scene" style="display: none">
+      <canvas id="scene1-canvas"></canvas>
+
+      <!-- Neon text overlay -->
+      <div class="scene1-overlay">
+        <h1 id="scene1-title" class="neon-title">Happy Valentine</h1>
+        <p id="scene1-quote" class="neon-subtitle">
+          "Em khiến thế giới anh tươi đẹp hơn !"
+        </p>
+      </div>
+
+      <!-- White fade transition layer -->
+      <div id="scene1-fade" class="fade-layer"></div>
+    </section>
+
+    <!-- ═══════════ SCENE 2 — VALENTINE GREETING (DARK BG) ═══════════ -->
+    <section id="scene2" class="scene scene2-dark" style="display: none">
+      <canvas id="confetti-canvas"></canvas>
+
+      <div class="scene2-content">
+        <h1 id="scene2-title" class="greeting-title-glow">
+          Happy Valentine's Day 💘
+        </h1>
+
+        <!-- Blooming flower canvas -->
+        <div class="flower-container">
+          <canvas id="flower-canvas"></canvas>
+        </div>
+
+        <div id="greeting-text" class="greeting-text-light"></div>
+
+        <div class="hearts-decoration-glow">
+          <span>💕</span><span>💖</span><span>💕</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ MAIN SCRIPT ═══════════ -->
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

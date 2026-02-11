@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>💕 Heart QR Generator</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        min-height: 100vh;
+        background: #0a0010;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: "Segoe UI", sans-serif;
+        color: #ffb6c1;
+        padding: 2rem;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        text-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+      }
+
+      .qr-preview {
+        background: #fff;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 8px 40px rgba(255, 105, 180, 0.2);
+      }
+
+      #qr-canvas {
+        display: block;
+      }
+
+      .actions {
+        margin-top: 2rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      button {
+        padding: 14px 32px;
+        border: 2px solid rgba(255, 105, 180, 0.5);
+        border-radius: 50px;
+        background: rgba(255, 105, 180, 0.15);
+        color: #ffb6c1;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        letter-spacing: 1px;
+      }
+
+      button:hover {
+        background: rgba(255, 105, 180, 0.3);
+        border-color: #ff69b4;
+        box-shadow: 0 0 30px rgba(255, 105, 180, 0.3);
+        transform: scale(1.05);
+      }
+
+      .info {
+        margin-top: 1.5rem;
+        font-size: 0.85rem;
+        opacity: 0.6;
+        text-align: center;
+      }
+
+      select {
+        padding: 8px 16px;
+        border: 1px solid rgba(255, 105, 180, 0.4);
+        border-radius: 8px;
+        background: rgba(255, 105, 180, 0.1);
+        color: #ffb6c1;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+      select option {
+        background: #1a0020;
+        color: #ffb6c1;
+      }
+
+      .size-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>💕 Heart QR Code Generator</h1>
+
+    <div class="size-label">
+      <span>Kích thước:</span>
+      <select id="size-select">
+        <option value="5">Nhỏ (5px)</option>
+        <option value="8" selected>Vừa (8px)</option>
+        <option value="12">Lớn (12px)</option>
+        <option value="16">Rất lớn (16px)</option>
+      </select>
+    </div>
+
+    <div class="qr-preview">
+      <canvas id="qr-canvas"></canvas>
+    </div>
+
+    <div class="actions">
+      <button id="download-btn">📥 Tải ảnh PNG</button>
+      <button id="download-bg-btn">📥 Tải kèm nền hồng</button>
+    </div>
+
+    <p class="info">
+      QR trỏ đến: https://github.com/RaidenNguyen/Happy-valantine
+    </p>
+
+    <script>
+      const QR_URL = "https://github.com/RaidenNguyen/Happy-valantine";
+      const QR_LIB_CDN =
+        "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js";
+
+      let qrLib = null;
+
+      function loadQRLib() {
+        return new Promise((resolve, reject) => {
+          if (window.qrcode) {
+            resolve(window.qrcode);
+            return;
+          }
+          const s = document.createElement("script");
+          s.src = QR_LIB_CDN;
+          s.onload = () => resolve(window.qrcode);
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+
+      function heartContains(px, py, size) {
+        const cx = size / 2,
+          cy = size / 2;
+        const scale = size * 0.45;
+        const x = (px - cx) / scale;
+        const y = -(py - cy) / scale + 0.3;
+        const eq = x * x + y * y - 1;
+        return eq * eq * eq - x * x * y * y * y < 0;
+      }
+
+      async function renderQR(cellSize) {
+        const qrcode = await loadQRLib();
+        const qr = qrcode(0, "H");
+        qr.addData(QR_URL);
+        qr.make();
+
+        const mods = qr.getModuleCount();
+        const size = mods * cellSize;
+        const canvas = document.getElementById("qr-canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+
+        // White background
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, size, size);
+
+        // Check if a module is part of a finder pattern (7x7 corners)
+        // or alignment pattern — these MUST always be drawn for scannability
+        function isFinderOrAlignment(row, col) {
+          // Top-left finder: rows 0-8, cols 0-8 (includes separator)
+          if (row <= 8 && col <= 8) return true;
+          // Top-right finder: rows 0-8, cols (mods-9) to (mods-1)
+          if (row <= 8 && col >= mods - 9) return true;
+          // Bottom-left finder: rows (mods-9) to (mods-1), cols 0-8
+          if (row >= mods - 9 && col <= 8) return true;
+          // Timing patterns (row 6 or col 6)
+          if (row === 6 || col === 6) return true;
+          return false;
+        }
+
+        // Draw QR modules: always draw finder/timing patterns,
+        // other modules only inside heart shape
+        for (let row = 0; row < mods; row++) {
+          for (let col = 0; col < mods; col++) {
+            if (!qr.isDark(row, col)) continue;
+
+            const px = col * cellSize + cellSize / 2;
+            const py = row * cellSize + cellSize / 2;
+            const inHeart = heartContains(px, py, size);
+            const isEssential = isFinderOrAlignment(row, col);
+
+            if (!inHeart && !isEssential) continue;
+
+            ctx.fillStyle = "#dc143c";
+            ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+          }
+        }
+
+        return canvas;
+      }
+
+      function downloadCanvas(canvas, filename) {
+        const link = document.createElement("a");
+        link.download = filename;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      }
+
+      function downloadWithBackground(srcCanvas) {
+        const pad = 60;
+        const w = srcCanvas.width + pad * 2;
+        const h = srcCanvas.height + pad * 2;
+        const c = document.createElement("canvas");
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext("2d");
+
+        // Pink gradient background
+        const grad = ctx.createRadialGradient(
+          w / 2,
+          h / 2,
+          0,
+          w / 2,
+          h / 2,
+          w * 0.7,
+        );
+        grad.addColorStop(0, "#fff0f5");
+        grad.addColorStop(1, "#ffe0ec");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Subtle shadow
+        ctx.shadowColor = "rgba(220, 20, 60, 0.2)";
+        ctx.shadowBlur = 30;
+        ctx.shadowOffsetY = 8;
+
+        // White card behind QR
+        const cardPad = 20;
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.roundRect(
+          pad - cardPad,
+          pad - cardPad,
+          srcCanvas.width + cardPad * 2,
+          srcCanvas.height + cardPad * 2,
+          16,
+        );
+        ctx.fill();
+
+        ctx.shadowColor = "transparent";
+        ctx.drawImage(srcCanvas, pad, pad);
+
+        downloadCanvas(c, "valentine-heart-qr.png");
+      }
+
+      // Init
+      const sizeSelect = document.getElementById("size-select");
+
+      sizeSelect.addEventListener("change", () => {
+        renderQR(parseInt(sizeSelect.value));
+      });
+
+      document.getElementById("download-btn").addEventListener("click", () => {
+        const canvas = document.getElementById("qr-canvas");
+        downloadCanvas(canvas, "valentine-heart-qr.png");
+      });
+
+      document
+        .getElementById("download-bg-btn")
+        .addEventListener("click", () => {
+          const canvas = document.getElementById("qr-canvas");
+          downloadWithBackground(canvas);
+        });
+
+      // Render on load
+      renderQR(parseInt(sizeSelect.value));
+    </script>
+  </body>
+</html>
