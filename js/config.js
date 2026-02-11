@@ -23,7 +23,7 @@ export const CONFIG = {
 
   // ── QR Code ──
   qr: {
-    url: "https://github.com/RaidenNguyen/Happy-valantine",
+    url: "https://raidennguyen.github.io/valentine-experience/",
     cellSize: 5,
   },
 
