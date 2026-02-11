@@ -170,7 +170,15 @@ function startScene1() {
   }
 
   const title = $("#scene1-title");
-  if (title) setTimeout(() => (title.style.opacity = "1"), 300);
+  if (title) {
+    title.textContent = CONFIG.scene1.title;
+    setTimeout(() => (title.style.opacity = "1"), 300);
+  }
+
+  const quote = $("#scene1-quote");
+  if (quote) {
+    quote.textContent = CONFIG.scene1.quote;
+  }
 
   state.startTime = performance.now();
   let frame = 0;
@@ -232,6 +240,11 @@ function startScene2() {
   if (s2) {
     s2.style.display = "block";
     s2.classList.add("scene-enter");
+  }
+
+  const title = $("#scene2-title");
+  if (title) {
+    title.textContent = CONFIG.scene2.title;
   }
 
   // Init sparkle/light particles for dark background
