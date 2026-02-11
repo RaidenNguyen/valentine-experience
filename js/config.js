@@ -8,7 +8,7 @@
 export const CONFIG = {
   // ── Scene 1 — Particle Heart ──
   scene1: {
-    title: "Happy Valentine",
+    title: "Happy Valentine - Anh Nhân ",
     quote: '"Em làm thế giới trong anh đẹp hơn ! ❤️💕"',
     duration: 10000, // ms before transition begins
   },
