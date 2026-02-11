@@ -29,9 +29,9 @@ export const CONFIG = {
 
   // ── Audio ──
   audio: {
-    volume: 0.25,
-    fadeInDuration: 2000,
-    heartbeatVolume: 0.3,
+    file: "assets/audio/valentine.mp3",
+    volume: 0.6,
+    loop: true,
   },
 
   // ── Performance ──

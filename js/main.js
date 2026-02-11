@@ -27,101 +27,88 @@ const $ = (sel) => document.querySelector(sel);
 // ═══════════ AUDIO SYSTEM ═══════════
 class AudioManager {
   constructor() {
-    this.ctx = null;
-    this.gainNode = null;
+    this.audio = new Audio(CONFIG.audio.file);
+    this.audio.loop = CONFIG.audio.loop;
+    this.audio.volume = 0; // Start at 0 for fade in
+    this.ctx = null; // For heartbeat SFX only
     this.isPlaying = false;
-    this.oscillators = [];
   }
 
   async init() {
+    // We can try to init web audio context for SFX if needed
     try {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      this.gainNode = this.ctx.createGain();
-      this.gainNode.gain.value = 0;
-      this.gainNode.connect(this.ctx.destination);
       return true;
     } catch (e) {
-      console.warn("AudioContext unavailable:", e);
+      console.warn("Web Audio for SFX unavailable:", e);
       return false;
     }
   }
 
   startRomanticPad() {
-    if (!this.ctx || this.isPlaying) return;
-    const now = this.ctx.currentTime;
+    if (this.isPlaying) return;
 
-    const freqs = [130.81, 164.81, 196.0, 246.94, 261.63, 293.66, 329.63];
-    for (const freq of freqs) {
-      const osc = this.ctx.createOscillator();
-      const g = this.ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, now);
-      osc.detune.setValueAtTime(Math.random() * 8 - 4, now);
-      g.gain.setValueAtTime(0.025, now);
-      osc.connect(g);
-      g.connect(this.gainNode);
-      osc.start(now);
-      this.oscillators.push(osc);
-    }
-
-    const lfo = this.ctx.createOscillator();
-    const lfoG = this.ctx.createGain();
-    lfo.type = "sine";
-    lfo.frequency.setValueAtTime(0.15, now);
-    lfoG.gain.setValueAtTime(2, now);
-    lfo.connect(lfoG);
-    lfoG.connect(this.oscillators[0].frequency);
-    lfo.start(now);
-    this.lfo = lfo;
-
-    this.gainNode.gain.setValueAtTime(0, now);
-    this.gainNode.gain.linearRampToValueAtTime(CONFIG.audio.volume, now + 2);
-    this.isPlaying = true;
+    // Play music
+    this.audio
+      .play()
+      .then(() => {
+        this.isPlaying = true;
+        // Fade in volume
+        let vol = 0;
+        const targetVol = CONFIG.audio.volume;
+        const fadeInterval = setInterval(() => {
+          vol += 0.05;
+          if (vol >= targetVol) {
+            vol = targetVol;
+            clearInterval(fadeInterval);
+          }
+          this.audio.volume = vol;
+        }, 100);
+      })
+      .catch((e) => {
+        console.warn("Autoplay prevented. Music will start on interaction.", e);
+      });
   }
 
   playHeartbeat() {
+    // Use Web Audio for dramatic heartbeat effect
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
-    for (let i = 0; i < 3; i++) {
+
+    // Create heartbeat sound (thump-thump)
+    const createThump = (time) => {
       const osc = this.ctx.createOscillator();
       const g = this.ctx.createGain();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(55, now + i * 0.55);
-      osc.frequency.exponentialRampToValueAtTime(25, now + i * 0.55 + 0.15);
-      g.gain.setValueAtTime(0.3, now + i * 0.55);
-      g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.55 + 0.3);
+      osc.frequency.setValueAtTime(55, time);
+      osc.frequency.exponentialRampToValueAtTime(25, time + 0.15);
+      g.gain.setValueAtTime(0.3, time);
+      g.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
       osc.connect(g);
       g.connect(this.ctx.destination);
-      osc.start(now + i * 0.55);
-      osc.stop(now + i * 0.55 + 0.4);
-    }
+      osc.start(time);
+      osc.stop(time + 0.4);
+    };
+
+    createThump(now);
+    createThump(now + 0.55);
+    createThump(now + 1.1);
   }
 
   toggleMute() {
-    if (!this.ctx) return false;
-    const now = this.ctx.currentTime;
-    if (this.gainNode.gain.value > 0.01) {
-      this.gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
-      return false;
+    if (this.audio.muted) {
+      this.audio.muted = false;
+      this.audio.volume = CONFIG.audio.volume;
+      return true; // Not muted
     } else {
-      this.gainNode.gain.linearRampToValueAtTime(
-        CONFIG.audio.volume,
-        now + 0.3,
-      );
-      return true;
+      this.audio.muted = true;
+      return false; // Muted
     }
   }
 
   dispose() {
-    this.oscillators.forEach((o) => {
-      try {
-        o.stop();
-      } catch (e) {}
-    });
-    if (this.lfo)
-      try {
-        this.lfo.stop();
-      } catch (e) {}
+    this.audio.pause();
+    this.audio.src = "";
     if (this.ctx) this.ctx.close();
   }
 }
